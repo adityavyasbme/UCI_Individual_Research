@@ -5,12 +5,13 @@ Created on Thu Oct 10 16:30:48 2019
 
 @author: adityavyas
 """
+# Importing the libraries
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import random
 
 def get_dataset():
-    # Importing the libraries
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import pandas as pd
     
     # Importing the dataset
     dataset = pd.read_csv('data/TCGA_data.csv')
@@ -24,9 +25,11 @@ def get_dataset():
     dataset.drop(dataset.loc[dataset['gender']=="MALE"].index, inplace=True)
     
     dataset["project_name"] = np.where(dataset["project_name"]=="TCGA-BRCA",1,0)
+    return dataset
 
 #    dataset["project_name"].describe()
 
+def divide(dataset):
      #Dividing the dataset
     X = dataset.iloc[:, 2:]
     y = dataset.iloc[:, 0]
@@ -37,7 +40,6 @@ def get_dataset():
     
     return [X_train, X_test, y_train, y_test]
 
-[X_train, X_test, y_train, y_test] = get_dataset()
 
 def run_xgboost(X_train,y_train,X_test,y_test):
     # Fitting XGBoost to the Training set
@@ -79,8 +81,8 @@ def run_xgboost(X_train,y_train,X_test,y_test):
 #    plt.show()
     
     return {"accuracy":accuracies.mean(),"std":accuracies.std(),"AUC":roc_auc}
-    
-#%%
+ 
+#FROM ITERATION 3   
 def add_gaussian_index(df,index):
     import math
     mean= df.mean()[index]
@@ -94,6 +96,90 @@ def add_gaussian_index(df,index):
     df.iloc[:,index]=new
     return df
 
+
+#FROM ITERATION 4
     
+"""
+Input : 
+    takes array of values
+Output : 
+    plot the function
+"""
+def plot(s):
+    count, bins, ignored = plt.hist(s, 30, normed=True)
+    plt.show()
+
+"""
+Input : 
+    mu - mean
+    sigma - standard deviation
+    vals - how many values you want in that range
+Output :
+    return normally distributed sample
+"""
+
+def gaussiansample(mu,sigma,vals): 
+    s = np.random.normal(mu, sigma, 1000)
+    return s
+
+def choose_random(lis):
+    return random.choice(lis)
+
+def augment_row_byvalue_single(data,ignore_index,times,std,sample_size,add_initial=False):
+    a = data.copy()
+    i = 0
+    ans=0
+    for i in range(len(data.columns)):
+        if i>ignore_index:
+            if not np.isnan(data.iat[0,i]):
+                ans+=1
+                temp2 = 0 
+                s = gaussiansample(data.iat[0,i],std,sample_size)
+                while temp2<times:
+                    temp = a.copy()
+                    val = choose_random(s)
+                    temp.iat[0,i]=val
+                    data=data.append(temp)
+                    temp2+=1
+#                break
     
+    print("Found {} values in the row and augmented data {} times".format(ans,ans*times))
+    #Include the first row i.e. the original data            
+    if add_initial:
+        return data
+    else:
+        return data.iloc[1:]    
+
+def augment_row_byvalue_all(data,ignore_index,times,std,sample_size,add_initial=False):
+    a = data.copy()
+    i = 0
+    ans=0
+    temp = a.copy()
+    for i in range(len(data.columns)):
+        if i>ignore_index:
+            if not np.isnan(data.iat[0,i]):
+                ans+=1
+                s = gaussiansample(data.iat[0,i],std,sample_size)
+                val = choose_random(s)
+                temp.iat[0,i]=val
+    data=data.append(temp)
+
+    print("Found {} values in the row and augmented {} values".format(ans,ans*times))
+    #Include the first row i.e. the original data            
+    if add_initial:
+        return data
+    else:
+        return data.iloc[1:]    
     
+def augment_column_byvalue_single(data,col_index,times,std,sample_size,add_initial=False):
+    new = pd.DataFrame()
+    if add_initial:
+        new = new.append(data,ignore_index=True)
+    if not np.isnan(data.iat[0,col_index]):
+        s = gaussiansample(data.iat[0,col_index],std,sample_size)
+        for i in range(times):
+            temp = data.copy()
+            val = choose_random(s)
+            temp.iat[0,col_index]=val
+            new = new.append(temp,ignore_index=True)
+    return new    
