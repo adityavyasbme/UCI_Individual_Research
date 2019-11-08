@@ -183,3 +183,20 @@ def augment_column_byvalue_single(data,col_index,times,std,sample_size,add_initi
             temp.iat[0,col_index]=val
             new = new.append(temp,ignore_index=True)
     return new    
+
+#Return top n indexs based on value
+def get_top_n(lis,num):
+    return sorted(range(len(lis)), key=lambda i: lis[i], reverse=True)[:num]
+
+#Return all the subsets of list except the blank one and itself
+def subsets(lis):
+    from itertools import chain, combinations
+    def all_subsets(ss):
+        return chain(*map(lambda x: combinations(ss, x), range(0, len(ss)+1)))
+    comb = []
+    for subset in all_subsets(lis):
+        if len(subset)!=0 and len(subset)!=1:
+            comb.append(subset)
+    return comb
+
+
