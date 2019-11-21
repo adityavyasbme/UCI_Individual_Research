@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import random
+import pickle
 
 def get_dataset():
     
@@ -199,4 +200,40 @@ def subsets(lis):
             comb.append(subset)
     return comb
 
+#Takes tuple of string and convert them into list
+def convertstrtolist(a):
+    a=a.replace("(","")
+    a=a.replace(")","")
+    a=a.split(",")
+    lis=[]
+    for i in a:
+        lis.append(int(i))
+    return lis
+    
 
+#DUMPING THE DATA INTO DATA FOLDER
+def savefile(data,name):
+    string = "data/"+name
+    # open a file, where you ant to store the data
+    file = open(string, 'wb')
+    # dump information to that file
+    pickle.dump(data, file)
+    # close the file
+    file.close()
+    print("Success")
+    
+def loadfile(name):
+    string = 'data/'+name
+    try:
+        # open a file, where you stored the pickled data
+        file = open(string, 'rb')
+        # dump information to that file
+        data = pickle.load(file)
+        # close the file
+        file.close()
+        return data
+    except:
+        print("File not found")
+
+
+    
